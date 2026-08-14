@@ -1,0 +1,120 @@
+import React, { useState } from 'react';
+import { View, Text, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { format, addDays } from 'date-fns';
+import { useApp } from '../context/AppContext';
+import { TextField } from '../components/TextField';
+import { Button } from '../components/Button';
+import { Chip } from '../components/Chip';
+import { useTheme } from '../theme/ThemeContext';
+import { useFormStyles } from '../theme/useFormStyles';
+import type { RootStackParamList } from '../navigation/types';
+import type { ExamDifficulty } from '../types/models';
+
+type Nav = NativeStackNavigationProp<RootStackParamList>;
+
+const DIFFICULTIES: { key: ExamDifficulty; label: string }[] = [
+  { key: 'easy', label: 'Easy' },
+  { key: 'medium', label: 'Medium' },
+  { key: 'hard', label: 'Hard' },
+];
+
+const SESSION_LENGTHS = [30, 45, 60, 90];
+
+export function AddExamScreen() {
+  const navigation = useNavigation<Nav>();
+  const { subjects, addExam } = useApp();
+  const { spacing, typography } = useTheme();
+  const styles = useFormStyles();
+
+  const [subjectId, setSubjectId] = useState<string | null>(subjects[0]?.id ?? null);
+  const [topic, setTopic] = useState('');
+  const [date, setDate] = useState(format(addDays(new Date(), 7), 'yyyy-MM-dd'));
+  const [difficulty, setDifficulty] = useState<ExamDifficulty>('medium');
+  const [chapters, setChapters] = useState('3');
+  const [material, setMaterial] = useState('');
+  const [sessionMinutes, setSessionMinutes] = useState<number | null>(null);
+  const [sessionCount, setSessionCount] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const canSave = topic.trim().length > 0 && subjectId !== null;
+
+  const save = async () => {
+    if (!subjectId) return;
+    setSaving(true);
+    const exam = await addExam(
+      {
+        subjectId,
+        topic: topic.trim(),
+        date,
+        difficulty,
+        chapters: Number(chapters) || 1,
+        material: material.trim(),
+      },
+      {
+        sessionMinutes: sessionMinutes ?? undefined,
+        sessionCount: sessionCount.trim() ? Number(sessionCount) : undefined,
+      }
+    );
+    setSaving(false);
+    navigation.replace('ExamDetail', { examId: exam.id });
+  };
+
+  return (
+    <ScrollView style={styles.wrap} contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }}>
+      <Text style={typography.h2}>Add an exam</Text>
+      <Text style={styles.subtitle}>
+        I'll turn this into a realistic study schedule on your Planner - and skip days you already have a lot of
+        homework on.
+      </Text>
+
+      <Text style={styles.sectionLabel}>Subject</Text>
+      <View style={styles.chipRow}>
+        {subjects.map((s) => (
+          <Chip key={s.id} label={s.name} active={subjectId === s.id} onPress={() => setSubjectId(s.id)} />
+        ))}
+      </View>
+
+      <TextField label="Topic" placeholder="e.g. Koude Oorlog" value={topic} onChangeText={setTopic} />
+      <TextField label="Exam date" placeholder="YYYY-MM-DD" value={date} onChangeText={setDate} />
+
+      <Text style={styles.sectionLabel}>Difficulty</Text>
+      <View style={styles.chipRow}>
+        {DIFFICULTIES.map((d) => (
+          <Chip key={d.key} label={d.label} active={difficulty === d.key} onPress={() => setDifficulty(d.key)} />
+        ))}
+      </View>
+
+      <TextField label="Number of chapters" keyboardType="number-pad" value={chapters} onChangeText={setChapters} />
+
+      <Text style={styles.sectionLabel}>How long per study session?</Text>
+      <View style={styles.chipRow}>
+        <Chip label="Auto" active={sessionMinutes === null} onPress={() => setSessionMinutes(null)} />
+        {SESSION_LENGTHS.map((m) => (
+          <Chip key={m} label={`${m} min`} active={sessionMinutes === m} onPress={() => setSessionMinutes(m)} />
+        ))}
+      </View>
+
+      <TextField
+        label="Number of sessions (leave empty for automatic)"
+        keyboardType="number-pad"
+        placeholder="Auto"
+        value={sessionCount}
+        onChangeText={setSessionCount}
+      />
+
+      <TextField
+        label="Study material (paste text - optional)"
+        placeholder="Paste notes, chapter summaries, anything you have..."
+        value={material}
+        onChangeText={setMaterial}
+        multiline
+        numberOfLines={6}
+        style={{ minHeight: 120, textAlignVertical: 'top' }}
+      />
+
+      <Button label="Generate study plan" onPress={save} disabled={!canSave} loading={saving} style={{ marginTop: spacing.md }} />
+    </ScrollView>
+  );
+}
