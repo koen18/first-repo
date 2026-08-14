@@ -2,13 +2,14 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { LinearGradient } from 'expo-linear-gradient';
 import { format, isToday, parseISO, differenceInCalendarDays } from 'date-fns';
 import { useApp } from '../context/AppContext';
 import { Screen } from '../components/Screen';
 import { Card } from '../components/Card';
 import { ProgressBar } from '../components/ProgressBar';
 import { Chip } from '../components/Chip';
-import { colors, spacing, typography } from '../theme/theme';
+import { colors, gradients, radius, shadow, spacing, typography } from '../theme/theme';
 import { subjectColor, subjectName } from '../utils/subjects';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -34,17 +35,29 @@ export function DashboardScreen() {
 
   return (
     <Screen>
-      <Text style={styles.greeting}>{greeting}, {profile.name || 'there'} 👋</Text>
-      <Text style={styles.date}>{format(new Date(), 'EEEE d MMMM')}</Text>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.greeting}>{greeting}, {profile.name || 'there'} 👋</Text>
+          <Text style={styles.date}>{format(new Date(), 'EEEE d MMMM')}</Text>
+        </View>
+        <Pressable
+          onPress={() => navigation.navigate('Settings')}
+          style={styles.settingsBtn}
+          accessibilityRole="button"
+          accessibilityLabel="Settings"
+        >
+          <Text style={styles.settingsIcon}>⚙️</Text>
+        </Pressable>
+      </View>
 
       {nextExam && (
-        <Card style={[styles.card, styles.examCard]}>
+        <LinearGradient colors={gradients.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.card, styles.examCard]}>
           <Text style={styles.examEyebrow}>NEXT EXAM</Text>
           <Text style={styles.examTitle}>{subjectName(subjects, nextExam.subjectId)} · {nextExam.topic}</Text>
           <Text style={styles.examMeta}>
             {format(parseISO(nextExam.date), 'EEEE d MMMM')} · in {differenceInCalendarDays(parseISO(nextExam.date), new Date())} days
           </Text>
-        </Card>
+        </LinearGradient>
       )}
 
       <Card style={styles.card}>
@@ -139,12 +152,23 @@ function QuickAction({ icon, bg, label, onPress }: { icon: string; bg: string; l
 }
 
 const styles = StyleSheet.create({
-  greeting: { ...typography.h1, marginTop: spacing.sm },
+  greeting: { ...typography.h1, marginTop: spacing.sm, flexShrink: 1 },
   date: { ...typography.bodyMuted, marginBottom: spacing.lg },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  settingsBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+    ...shadow.soft,
+  },
+  settingsIcon: { fontSize: 18 },
   card: { marginBottom: spacing.lg },
-  examCard: { backgroundColor: colors.primary },
+  examCard: { borderRadius: radius.md, padding: spacing.lg, ...shadow.glow },
   examEyebrow: { color: colors.primarySoft, fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
-  examTitle: { color: colors.white, fontSize: 18, fontWeight: '700', marginTop: spacing.xs },
+  examTitle: { color: colors.white, fontSize: 19, fontWeight: '800', marginTop: spacing.xs },
   examMeta: { color: colors.primarySoft, marginTop: spacing.xs },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
   muted: { ...typography.bodyMuted },

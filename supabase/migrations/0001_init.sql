@@ -10,6 +10,9 @@ create table if not exists profiles (
   school_start_time text not null default '08:30',
   school_end_time text not null default '15:00',
   onboarded boolean not null default false,
+  daily_study_budget_minutes int not null default 120,
+  reminders_enabled boolean not null default false,
+  reminder_time text not null default '16:00',
   created_at timestamptz not null default now()
 );
 

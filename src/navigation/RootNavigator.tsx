@@ -14,6 +14,8 @@ import { ExamDetailScreen } from '../screens/ExamDetailScreen';
 import { SummaryToolScreen } from '../screens/SummaryToolScreen';
 import { QuizToolScreen } from '../screens/QuizToolScreen';
 import { FlashcardToolScreen } from '../screens/FlashcardToolScreen';
+import { ExplainScreen } from '../screens/ExplainScreen';
+import { GlossaryToolScreen } from '../screens/GlossaryToolScreen';
 import { QuizPlayScreen } from '../screens/QuizPlayScreen';
 import { DeckReviewScreen } from '../screens/DeckReviewScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
@@ -57,6 +59,8 @@ export function RootNavigator() {
             <Stack.Screen name="SummaryTool" component={SummaryToolScreen} options={{ headerShown: true, title: '' }} />
             <Stack.Screen name="QuizTool" component={QuizToolScreen} options={{ headerShown: true, title: '' }} />
             <Stack.Screen name="FlashcardTool" component={FlashcardToolScreen} options={{ headerShown: true, title: '' }} />
+            <Stack.Screen name="ExplainTool" component={ExplainScreen} options={{ headerShown: true, title: '' }} />
+            <Stack.Screen name="GlossaryTool" component={GlossaryToolScreen} options={{ headerShown: true, title: '' }} />
             <Stack.Screen name="QuizPlay" component={QuizPlayScreen} options={{ headerShown: true, title: 'Practice test' }} />
             <Stack.Screen name="DeckReview" component={DeckReviewScreen} options={{ headerShown: true, title: 'Flashcards' }} />
             <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: true, title: '' }} />

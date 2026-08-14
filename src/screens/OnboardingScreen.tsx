@@ -48,6 +48,9 @@ export function OnboardingScreen() {
         .filter(Boolean),
       schoolStartTime: startTime,
       schoolEndTime: endTime,
+      dailyStudyBudgetMinutes: 120,
+      remindersEnabled: false,
+      reminderTime: '16:00',
     });
     setSubmitting(false);
   };

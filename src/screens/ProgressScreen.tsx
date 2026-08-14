@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -7,19 +7,40 @@ import { useApp } from '../context/AppContext';
 import { Screen } from '../components/Screen';
 import { Card } from '../components/Card';
 import { ProgressBar } from '../components/ProgressBar';
+import { Chip } from '../components/Chip';
 import { colors, spacing, typography } from '../theme/theme';
 import { subjectColor, subjectName } from '../utils/subjects';
 import type { RootStackParamList } from '../navigation/types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
+const STRONG_THRESHOLD = 70;
+
 export function ProgressScreen() {
-  const { progress, subjects, exams } = useApp();
+  const { progress, subjects, exams, quizzes } = useApp();
   const navigation = useNavigation<Nav>();
 
   const upcomingExams = [...exams]
     .filter((e) => differenceInCalendarDays(parseISO(e.date), new Date()) >= 0)
     .sort((a, b) => a.date.localeCompare(b.date));
+
+  const subjectPerformance = useMemo(() => {
+    const bySubject = new Map<string, number[]>();
+    for (const q of quizzes) {
+      if (q.lastScore === null || !q.subjectId) continue;
+      const scores = bySubject.get(q.subjectId) ?? [];
+      scores.push(q.lastScore);
+      bySubject.set(q.subjectId, scores);
+    }
+    const averaged = Array.from(bySubject.entries()).map(([subjectId, scores]) => ({
+      subjectId,
+      avg: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
+    }));
+    return {
+      strong: averaged.filter((s) => s.avg >= STRONG_THRESHOLD).sort((a, b) => b.avg - a.avg),
+      weak: averaged.filter((s) => s.avg < STRONG_THRESHOLD).sort((a, b) => a.avg - b.avg),
+    };
+  }, [quizzes]);
 
   return (
     <Screen>
@@ -58,6 +79,33 @@ export function ProgressScreen() {
           );
         })}
       </Card>
+
+      {(subjectPerformance.strong.length > 0 || subjectPerformance.weak.length > 0) && (
+        <Card style={styles.card}>
+          <Text style={typography.h3}>Strong & weak topics</Text>
+          <Text style={styles.insightHint}>Based on your practice test scores per subject</Text>
+          {subjectPerformance.strong.length > 0 && (
+            <>
+              <Text style={styles.insightLabel}>💪 Strong</Text>
+              <View style={styles.chipRow}>
+                {subjectPerformance.strong.map((s) => (
+                  <Chip key={s.subjectId} label={`${subjectName(subjects, s.subjectId)} · ${s.avg}%`} color={{ bg: colors.secondarySoft, fg: colors.secondary }} />
+                ))}
+              </View>
+            </>
+          )}
+          {subjectPerformance.weak.length > 0 && (
+            <>
+              <Text style={styles.insightLabel}>🎯 Needs attention</Text>
+              <View style={styles.chipRow}>
+                {subjectPerformance.weak.map((s) => (
+                  <Chip key={s.subjectId} label={`${subjectName(subjects, s.subjectId)} · ${s.avg}%`} color={{ bg: colors.warningSoft, fg: colors.warning }} />
+                ))}
+              </View>
+            </>
+          )}
+        </Card>
+      )}
 
       <Card style={styles.card}>
         <Text style={typography.h3}>Upcoming exams</Text>
@@ -103,6 +151,9 @@ const styles = StyleSheet.create({
   statTotal: { fontSize: 16, color: colors.textFaint, fontWeight: '600' },
   statLabel: { ...typography.bodyMuted, marginTop: 4 },
   card: { marginBottom: spacing.lg },
+  insightHint: { ...typography.caption, marginTop: 2, marginBottom: spacing.sm },
+  insightLabel: { ...typography.label, marginTop: spacing.sm, marginBottom: spacing.sm },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   emptyText: { ...typography.bodyMuted, marginTop: spacing.sm },
   subjectRow: { marginTop: spacing.md },
   subjectHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },

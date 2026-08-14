@@ -12,6 +12,9 @@ export const demoProfile: UserProfile = {
   schoolStartTime: '08:30',
   schoolEndTime: '15:00',
   onboarded: false,
+  dailyStudyBudgetMinutes: 120,
+  remindersEnabled: false,
+  reminderTime: '16:00',
 };
 
 export const demoSubjects: Subject[] = [

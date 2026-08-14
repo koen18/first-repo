@@ -15,6 +15,8 @@ const TOOLS: { icon: string; title: string; desc: string; screen: keyof RootStac
   { icon: '📝', title: 'Summary', desc: 'Turn your material into a clear summary', screen: 'SummaryTool' },
   { icon: '❓', title: 'Practice test', desc: 'Generate multiple-choice questions', screen: 'QuizTool' },
   { icon: '🧠', title: 'Flashcards', desc: 'Create a deck to drill key terms', screen: 'FlashcardTool' },
+  { icon: '💡', title: 'Explain a topic', desc: 'Get a simple, structured explanation', screen: 'ExplainTool' },
+  { icon: '📖', title: 'Glossary', desc: 'Key terms with clear definitions', screen: 'GlossaryTool' },
 ];
 
 export function StudyScreen() {

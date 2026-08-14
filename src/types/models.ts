@@ -8,6 +8,9 @@ export interface UserProfile {
   schoolStartTime: string; // "08:30"
   schoolEndTime: string; // "15:00"
   onboarded: boolean;
+  dailyStudyBudgetMinutes: number; // planner avoids stacking study sessions past this on one day
+  remindersEnabled: boolean;
+  reminderTime: string; // "16:00"
 }
 
 export interface Subject {

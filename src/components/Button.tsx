@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, Text, StyleSheet, ActivityIndicator, ViewStyle } from 'react-native';
-import { colors, radius, spacing, typography } from '../theme/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors, gradients, radius, shadow, spacing, typography } from '../theme/theme';
 
 interface ButtonProps {
   label: string;
@@ -24,13 +25,50 @@ export function Button({
   icon,
 }: ButtonProps) {
   const isDisabled = disabled || loading;
+
+  const content = loading ? (
+    <ActivityIndicator color={variant === 'primary' || variant === 'danger' ? colors.white : colors.primary} />
+  ) : (
+    <Text style={[styles.label, textStyles[variant], size === 'sm' && styles.labelSm]}>
+      {icon ? `${icon}  ` : ''}
+      {label}
+    </Text>
+  );
+
+  const sharedProps = {
+    onPress,
+    disabled: isDisabled,
+    accessibilityRole: 'button' as const,
+    accessibilityLabel: label,
+    accessibilityState: { disabled: isDisabled, busy: !!loading },
+  };
+
+  if (variant === 'primary') {
+    return (
+      <Pressable
+        {...sharedProps}
+        style={({ pressed }) => [
+          styles.gradientWrap,
+          isDisabled && styles.disabled,
+          pressed && !isDisabled && styles.pressed,
+          style,
+        ]}
+      >
+        <LinearGradient
+          colors={gradients.primary}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.base, size === 'sm' && styles.sm]}
+        >
+          {content}
+        </LinearGradient>
+      </Pressable>
+    );
+  }
+
   return (
     <Pressable
-      onPress={onPress}
-      disabled={isDisabled}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled: isDisabled, busy: !!loading }}
+      {...sharedProps}
       style={({ pressed }) => [
         styles.base,
         size === 'sm' && styles.sm,
@@ -40,19 +78,16 @@ export function Button({
         style,
       ]}
     >
-      {loading ? (
-        <ActivityIndicator color={variant === 'primary' || variant === 'danger' ? colors.white : colors.primary} />
-      ) : (
-        <Text style={[styles.label, textStyles[variant], size === 'sm' && styles.labelSm]}>
-          {icon ? `${icon}  ` : ''}
-          {label}
-        </Text>
-      )}
+      {content}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  gradientWrap: {
+    borderRadius: radius.pill,
+    ...shadow.glow,
+  },
   base: {
     paddingVertical: 14,
     paddingHorizontal: spacing.xl,
@@ -65,7 +100,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   disabled: { opacity: 0.5 },
-  pressed: { opacity: 0.85 },
+  pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
   label: { ...typography.h3, fontSize: 15 },
   labelSm: { fontSize: 13 },
 });

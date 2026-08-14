@@ -8,6 +8,8 @@ export type RootStackParamList = {
   SummaryTool: undefined;
   QuizTool: undefined;
   FlashcardTool: undefined;
+  ExplainTool: undefined;
+  GlossaryTool: undefined;
   QuizPlay: { quizId: string };
   DeckReview: { deckId: string };
   Settings: undefined;

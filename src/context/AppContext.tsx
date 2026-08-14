@@ -89,6 +89,7 @@ interface AppContextValue extends PersistedState {
   addSummary: (title: string, subjectId: string | null, content: string) => Promise<Summary>;
   sendChatMessage: (content: string) => Promise<void>;
   signOut: () => Promise<void>;
+  resetLocalData: () => Promise<void>;
   progress: ProgressSnapshot;
 }
 
@@ -220,7 +221,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const addExam = useCallback<AppContextValue['addExam']>(
     async (input, options) => {
       const exam: Exam = { ...input, id: uid(), planGenerated: false };
-      const sessions = await createStudyPlan(exam, state.tasks, options);
+      const sessions = await createStudyPlan(exam, state.tasks, {
+        dailyBusyLimitMinutes: state.profile.dailyStudyBudgetMinutes,
+        ...options,
+      });
       const sessionTasks: Task[] = sessions.map((s) => ({
         id: uid(),
         title: s.title,
@@ -367,6 +371,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (supabase) await supabase.auth.signOut();
   }, []);
 
+  const resetLocalData = useCallback(async () => {
+    if (isSupabaseConfigured) return;
+    const fresh = seedState();
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+    setState(fresh);
+  }, []);
+
   const progress = useMemo<ProgressSnapshot>(() => {
     const realTasks = state.tasks.filter((t) => t.kind !== 'event');
     const sessions = state.tasks.filter((t) => t.kind === 'study_session');
@@ -410,6 +421,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     addSummary,
     sendChatMessage,
     signOut,
+    resetLocalData,
     progress,
   };
 

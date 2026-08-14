@@ -1,28 +1,35 @@
 export const colors = {
-  bg: '#F7F8FC',
+  bg: '#F5F6FB',
   surface: '#FFFFFF',
-  primary: '#6C5CE7',
-  primarySoft: '#EFEBFF',
-  secondary: '#00B894',
-  secondarySoft: '#E3FBF4',
-  warning: '#FDA22A',
-  warningSoft: '#FFF1DE',
-  danger: '#FF5C7A',
-  dangerSoft: '#FFE7EC',
-  text: '#1A1B25',
-  textMuted: '#6B6F82',
-  textFaint: '#9DA1B3',
-  border: '#ECEEF5',
+  primary: '#5B3FE0',
+  primaryDeep: '#4527C4',
+  primarySoft: '#EEEAFF',
+  secondary: '#00C88C',
+  secondarySoft: '#E1FBF2',
+  warning: '#FF9F1C',
+  warningSoft: '#FFF0DC',
+  danger: '#FF4D6D',
+  dangerSoft: '#FFE5EA',
+  text: '#14141F',
+  textMuted: '#666B80',
+  textFaint: '#9AA0B4',
+  border: '#EBEDF6',
   white: '#FFFFFF',
 };
 
+export const gradients = {
+  primary: ['#6C4CF0', '#4527C4'] as const,
+  hero: ['#7A5CF5', '#4527C4'] as const,
+  warm: ['#FFB84C', '#FF7A45'] as const,
+};
+
 export const subjectPalette = [
-  { bg: '#EFEBFF', fg: '#6C5CE7' },
-  { bg: '#E3FBF4', fg: '#00B894' },
-  { bg: '#FFF1DE', fg: '#DB8B1B' },
-  { bg: '#FFE7EC', fg: '#E23F63' },
-  { bg: '#E6F3FF', fg: '#1E88E5' },
-  { bg: '#FBEAFF', fg: '#B03FE2' },
+  { bg: '#EEEAFF', fg: '#5B3FE0' },
+  { bg: '#E1FBF2', fg: '#00A377' },
+  { bg: '#FFF0DC', fg: '#D97D06' },
+  { bg: '#FFE5EA', fg: '#E23358' },
+  { bg: '#E3F1FF', fg: '#0F72D1' },
+  { bg: '#FBEAFF', fg: '#A62FDB' },
 ];
 
 export const spacing = {
@@ -35,35 +42,43 @@ export const spacing = {
 };
 
 export const radius = {
-  sm: 10,
-  md: 16,
-  lg: 22,
+  sm: 12,
+  md: 18,
+  lg: 26,
   pill: 999,
 };
 
 export const shadow = {
   card: {
-    shadowColor: '#1A1B25',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
+    shadowColor: '#14141F',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.05,
+    shadowRadius: 20,
     elevation: 3,
   },
   soft: {
-    shadowColor: '#1A1B25',
+    shadowColor: '#14141F',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 1,
   },
+  glow: {
+    shadowColor: '#5B3FE0',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.22,
+    shadowRadius: 20,
+    elevation: 6,
+  },
 };
 
 export const typography = {
-  h1: { fontSize: 28, fontWeight: '700' as const, color: colors.text },
-  h2: { fontSize: 22, fontWeight: '700' as const, color: colors.text },
-  h3: { fontSize: 17, fontWeight: '600' as const, color: colors.text },
+  display: { fontSize: 32, fontWeight: '800' as const, color: colors.text, letterSpacing: -0.5 },
+  h1: { fontSize: 27, fontWeight: '800' as const, color: colors.text, letterSpacing: -0.4 },
+  h2: { fontSize: 21, fontWeight: '700' as const, color: colors.text, letterSpacing: -0.2 },
+  h3: { fontSize: 16, fontWeight: '700' as const, color: colors.text },
   body: { fontSize: 15, fontWeight: '400' as const, color: colors.text },
   bodyMuted: { fontSize: 14, fontWeight: '400' as const, color: colors.textMuted },
   caption: { fontSize: 12, fontWeight: '500' as const, color: colors.textFaint },
-  label: { fontSize: 13, fontWeight: '600' as const, color: colors.textMuted },
+  label: { fontSize: 12.5, fontWeight: '700' as const, color: colors.textMuted, letterSpacing: 0.2 },
 };

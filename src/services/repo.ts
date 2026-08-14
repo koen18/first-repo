@@ -30,6 +30,9 @@ export function mapProfile(row: any, id: string): UserProfile {
     schoolStartTime: row?.school_start_time ?? '08:30',
     schoolEndTime: row?.school_end_time ?? '15:00',
     onboarded: row?.onboarded ?? false,
+    dailyStudyBudgetMinutes: row?.daily_study_budget_minutes ?? 120,
+    remindersEnabled: row?.reminders_enabled ?? false,
+    reminderTime: row?.reminder_time ?? '16:00',
   };
 }
 
@@ -131,6 +134,9 @@ export async function cloudSaveProfile(userId: string, profile: Omit<UserProfile
       school_start_time: profile.schoolStartTime,
       school_end_time: profile.schoolEndTime,
       onboarded: profile.onboarded,
+      daily_study_budget_minutes: profile.dailyStudyBudgetMinutes,
+      reminders_enabled: profile.remindersEnabled,
+      reminder_time: profile.reminderTime,
     })
     .eq('id', userId);
 }

@@ -108,6 +108,29 @@ export async function explainTopic(question: string): Promise<string> {
   }
 }
 
+// ---- generateGlossary ---------------------------------------------------
+
+export async function generateGlossary(topic: string, material: string): Promise<string> {
+  try {
+    const prompt = `Topic: ${topic}\n\nMaterial:\n${material}`;
+    return await callAI('glossary', prompt);
+  } catch {
+    return mockGlossary(topic, material);
+  }
+}
+
+function mockGlossary(topic: string, material: string): string {
+  const words = material
+    .split(/\s+/)
+    .map((w) => w.replace(/[^\p{L}\p{N}-]/gu, ''))
+    .filter((w) => w.length > 6);
+  const uniqueTerms = Array.from(new Set(words)).slice(0, 6);
+  const lines = uniqueTerms.length
+    ? uniqueTerms.map((term) => `**${term}** — definition based on your material would appear here.`)
+    : [`No material was entered yet for "${topic}".`];
+  return `## Key terms: ${topic}\n\n${lines.join('\n\n')}\n\n*Demo glossary - connect an AI provider for real, material-based definitions.*`;
+}
+
 // ---- AI Coach chat ----------------------------------------------------------
 
 export async function coachReply(message: string): Promise<string> {
@@ -148,12 +171,10 @@ export interface GeneratedSession {
 export interface StudyPlanOptions {
   sessionMinutes?: number; // student override; otherwise derived from difficulty
   sessionCount?: number; // student override; otherwise derived from chapters x difficulty
+  dailyBusyLimitMinutes?: number; // from the student's Settings; days at/above this are treated as "full"
 }
 
-// Days that already have this much homework/events scheduled are treated as
-// "full" - the planner looks for a nearby lighter day instead of stacking a
-// study session on top, so it never eats into a day already busy with homework.
-const DAILY_BUSY_LIMIT_MINUTES = 120;
+const DEFAULT_DAILY_BUSY_LIMIT_MINUTES = 120;
 
 export async function createStudyPlan(
   exam: Pick<Exam, 'topic' | 'date' | 'difficulty' | 'chapters' | 'material'>,
@@ -171,6 +192,7 @@ export async function createStudyPlan(
     Math.max(daysAvailable, 1)
   );
   const sessionMinutes = options.sessionMinutes ?? (exam.difficulty === 'hard' ? 60 : 45);
+  const dailyBusyLimitMinutes = options.dailyBusyLimitMinutes ?? DEFAULT_DAILY_BUSY_LIMIT_MINUTES;
 
   const titles = await sessionTitles(exam, sessionCount);
 
@@ -192,8 +214,8 @@ export async function createStudyPlan(
     const anchor = Math.min(Math.round(step * i), candidateDates.length - 1);
     let bestIndex = anchor;
     let bestLoad = busyByDate.get(candidateDates[anchor]) ?? 0;
-    if (bestLoad >= DAILY_BUSY_LIMIT_MINUTES) {
-      for (let delta = 1; delta <= 3 && bestLoad >= DAILY_BUSY_LIMIT_MINUTES; delta++) {
+    if (bestLoad >= dailyBusyLimitMinutes) {
+      for (let delta = 1; delta <= 3 && bestLoad >= dailyBusyLimitMinutes; delta++) {
         for (const candidate of [anchor - delta, anchor + delta]) {
           if (candidate < 0 || candidate >= candidateDates.length) continue;
           const load = busyByDate.get(candidateDates[candidate]) ?? 0;
