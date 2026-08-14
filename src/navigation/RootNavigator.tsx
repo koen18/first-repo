@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { StatusBar } from 'expo-status-bar';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useApp } from '../context/AppContext';
+import { useTheme } from '../theme/ThemeContext';
 import type { RootStackParamList } from './types';
 import { OnboardingScreen } from '../screens/OnboardingScreen';
 import { AuthScreen } from '../screens/AuthScreen';
@@ -19,13 +21,15 @@ import { GlossaryToolScreen } from '../screens/GlossaryToolScreen';
 import { QuizPlayScreen } from '../screens/QuizPlayScreen';
 import { DeckReviewScreen } from '../screens/DeckReviewScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
-import { colors } from '../theme/theme';
+import { FocusModeScreen } from '../screens/FocusModeScreen';
+import { AchievementsScreen } from '../screens/AchievementsScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function LoadingScreen() {
+  const { colors } = useTheme();
   return (
-    <View style={styles.loading}>
+    <View style={[styles.loading, { backgroundColor: colors.bg }]}>
       <ActivityIndicator color={colors.primary} size="large" />
     </View>
   );
@@ -33,19 +37,34 @@ function LoadingScreen() {
 
 export function RootNavigator() {
   const { profile, loading, needsAuth } = useApp();
+  const { colors, scheme } = useTheme();
 
   if (loading) return <LoadingScreen />;
 
+  const navTheme = {
+    ...(scheme === 'dark' ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(scheme === 'dark' ? DarkTheme.colors : DefaultTheme.colors),
+      background: colors.bg,
+      card: colors.surface,
+      text: colors.text,
+      border: colors.border,
+      primary: colors.primary,
+    },
+  };
+
   if (needsAuth) {
     return (
-      <NavigationContainer>
+      <NavigationContainer theme={navTheme}>
+        <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
         <AuthScreen />
       </NavigationContainer>
     );
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navTheme}>
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!profile.onboarded ? (
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
@@ -64,6 +83,8 @@ export function RootNavigator() {
             <Stack.Screen name="QuizPlay" component={QuizPlayScreen} options={{ headerShown: true, title: 'Practice test' }} />
             <Stack.Screen name="DeckReview" component={DeckReviewScreen} options={{ headerShown: true, title: 'Flashcards' }} />
             <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: true, title: '' }} />
+            <Stack.Screen name="FocusMode" component={FocusModeScreen} options={{ presentation: 'fullScreenModal', headerShown: false }} />
+            <Stack.Screen name="Achievements" component={AchievementsScreen} options={{ headerShown: true, title: '' }} />
           </>
         )}
       </Stack.Navigator>
@@ -72,5 +93,5 @@ export function RootNavigator() {
 }
 
 const styles = StyleSheet.create({
-  loading: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg },
+  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 });

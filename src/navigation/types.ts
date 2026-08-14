@@ -13,6 +13,8 @@ export type RootStackParamList = {
   QuizPlay: { quizId: string };
   DeckReview: { deckId: string };
   Settings: undefined;
+  FocusMode: { taskId?: string } | undefined;
+  Achievements: undefined;
 };
 
 export type MainTabParamList = {

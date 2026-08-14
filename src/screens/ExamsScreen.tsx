@@ -7,7 +7,7 @@ import { useApp } from '../context/AppContext';
 import { Screen } from '../components/Screen';
 import { Card } from '../components/Card';
 import { Chip } from '../components/Chip';
-import { colors, radius, spacing, typography } from '../theme/theme';
+import { useTheme } from '../theme/ThemeContext';
 import { subjectColor, subjectName } from '../utils/subjects';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -16,6 +16,8 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 export function ExamsScreen() {
   const { exams, subjects } = useApp();
   const navigation = useNavigation<Nav>();
+  const { colors, spacing, typography, subjectPalette } = useTheme();
+  const styles = getStyles(colors, spacing);
 
   const sorted = [...exams].sort((a, b) => a.date.localeCompare(b.date));
 
@@ -33,7 +35,7 @@ export function ExamsScreen() {
         contentContainerStyle={{ paddingTop: spacing.lg, paddingBottom: spacing.xxl * 2 }}
         ListEmptyComponent={<Text style={styles.emptyText}>No exams yet. Add one and I'll build a study plan.</Text>}
         renderItem={({ item }) => {
-          const color = subjectColor(subjects.find((s) => s.id === item.subjectId));
+          const color = subjectColor(subjects.find((s) => s.id === item.subjectId), subjectPalette);
           const daysLeft = differenceInCalendarDays(parseISO(item.date), new Date());
           return (
             <Pressable onPress={() => navigation.navigate('ExamDetail', { examId: item.id })}>
@@ -53,14 +55,16 @@ export function ExamsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: spacing.sm },
-  addBtn: { backgroundColor: colors.primary, paddingHorizontal: spacing.lg, paddingVertical: 10, borderRadius: radius.pill },
-  addBtnText: { color: colors.white, fontWeight: '700' },
-  emptyText: { ...typography.bodyMuted, textAlign: 'center', marginTop: spacing.xxl },
-  examCard: { marginBottom: spacing.md },
-  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  daysLeft: { ...typography.label, color: colors.textMuted },
-  topic: { ...typography.h3, marginTop: spacing.sm },
-  date: { ...typography.bodyMuted, marginTop: 2 },
-});
+function getStyles(colors: ReturnType<typeof useTheme>['colors'], spacing: ReturnType<typeof useTheme>['spacing']) {
+  return StyleSheet.create({
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: spacing.sm },
+    addBtn: { backgroundColor: colors.primary, paddingHorizontal: spacing.lg, paddingVertical: 10, borderRadius: 999 },
+    addBtnText: { color: colors.white, fontWeight: '700' },
+    emptyText: { fontSize: 14, color: colors.textMuted, textAlign: 'center', marginTop: spacing.xxl },
+    examCard: { marginBottom: spacing.md },
+    rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    daysLeft: { fontSize: 12.5, fontWeight: '700', color: colors.textMuted },
+    topic: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: spacing.sm },
+    date: { fontSize: 14, color: colors.textMuted, marginTop: 2 },
+  });
+}

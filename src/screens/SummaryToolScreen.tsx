@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../context/AppContext';
@@ -7,7 +7,8 @@ import { TextField } from '../components/TextField';
 import { Button } from '../components/Button';
 import { Chip } from '../components/Chip';
 import { Card } from '../components/Card';
-import { colors, spacing, typography } from '../theme/theme';
+import { useTheme } from '../theme/ThemeContext';
+import { useFormStyles } from '../theme/useFormStyles';
 import { generateSummary } from '../services/ai';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -16,6 +17,8 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 export function SummaryToolScreen() {
   const navigation = useNavigation<Nav>();
   const { subjects, addSummary } = useApp();
+  const { spacing, typography } = useTheme();
+  const styles = useFormStyles();
   const [subjectId, setSubjectId] = useState<string | null>(subjects[0]?.id ?? null);
   const [topic, setTopic] = useState('');
   const [material, setMaterial] = useState('');
@@ -79,10 +82,3 @@ export function SummaryToolScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: colors.bg },
-  subtitle: { ...typography.bodyMuted, marginTop: spacing.xs, marginBottom: spacing.lg },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
-  resultText: { ...typography.body, lineHeight: 22 },
-});

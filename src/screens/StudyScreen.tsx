@@ -5,7 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../context/AppContext';
 import { Screen } from '../components/Screen';
 import { Card } from '../components/Card';
-import { colors, spacing, typography } from '../theme/theme';
+import { useTheme } from '../theme/ThemeContext';
 import { subjectName } from '../utils/subjects';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -22,6 +22,8 @@ const TOOLS: { icon: string; title: string; desc: string; screen: keyof RootStac
 export function StudyScreen() {
   const navigation = useNavigation<Nav>();
   const { summaries, quizzes, decks, subjects } = useApp();
+  const { colors, spacing, typography } = useTheme();
+  const styles = getStyles(colors, spacing, typography);
 
   return (
     <Screen>
@@ -87,14 +89,20 @@ export function StudyScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  subtitle: { ...typography.bodyMuted, marginTop: spacing.xs, marginBottom: spacing.lg },
-  toolCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.md },
-  toolIcon: { fontSize: 28 },
-  toolDesc: { ...typography.bodyMuted, marginTop: 2 },
-  chevron: { fontSize: 22, color: colors.textFaint },
-  sectionTitle: { marginTop: spacing.lg, marginBottom: spacing.sm },
-  listCard: { marginBottom: spacing.sm },
-  listTitle: { ...typography.body, fontWeight: '600' },
-  listMeta: { ...typography.caption, marginTop: 4 },
-});
+function getStyles(
+  colors: ReturnType<typeof useTheme>['colors'],
+  spacing: ReturnType<typeof useTheme>['spacing'],
+  typography: ReturnType<typeof useTheme>['typography']
+) {
+  return StyleSheet.create({
+    subtitle: { ...typography.bodyMuted, marginTop: spacing.xs, marginBottom: spacing.lg },
+    toolCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.md },
+    toolIcon: { fontSize: 28 },
+    toolDesc: { ...typography.bodyMuted, marginTop: 2 },
+    chevron: { fontSize: 22, color: colors.textFaint },
+    sectionTitle: { marginTop: spacing.lg, marginBottom: spacing.sm },
+    listCard: { marginBottom: spacing.sm },
+    listTitle: { ...typography.body, fontWeight: '600' },
+    listMeta: { ...typography.caption, marginTop: 4 },
+  });
+}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { format, addDays } from 'date-fns';
@@ -7,7 +7,8 @@ import { useApp } from '../context/AppContext';
 import { TextField } from '../components/TextField';
 import { Button } from '../components/Button';
 import { Chip } from '../components/Chip';
-import { colors, spacing, typography } from '../theme/theme';
+import { useTheme } from '../theme/ThemeContext';
+import { useFormStyles } from '../theme/useFormStyles';
 import type { RootStackParamList } from '../navigation/types';
 import type { ExamDifficulty } from '../types/models';
 
@@ -24,6 +25,8 @@ const SESSION_LENGTHS = [30, 45, 60, 90];
 export function AddExamScreen() {
   const navigation = useNavigation<Nav>();
   const { subjects, addExam } = useApp();
+  const { spacing, typography } = useTheme();
+  const styles = useFormStyles();
 
   const [subjectId, setSubjectId] = useState<string | null>(subjects[0]?.id ?? null);
   const [topic, setTopic] = useState('');
@@ -115,10 +118,3 @@ export function AddExamScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: colors.bg },
-  subtitle: { ...typography.bodyMuted, marginTop: spacing.xs, marginBottom: spacing.lg },
-  sectionLabel: { ...typography.label, marginTop: spacing.sm, marginBottom: spacing.sm },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
-});

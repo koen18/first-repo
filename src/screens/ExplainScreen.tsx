@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
-import { Text, StyleSheet, ScrollView, View } from 'react-native';
+import { Text, ScrollView, View } from 'react-native';
 import { useApp } from '../context/AppContext';
 import { TextField } from '../components/TextField';
 import { Button } from '../components/Button';
 import { Chip } from '../components/Chip';
 import { Card } from '../components/Card';
-import { colors, spacing, typography } from '../theme/theme';
+import { useTheme } from '../theme/ThemeContext';
+import { useFormStyles } from '../theme/useFormStyles';
 import { explainTopic } from '../services/ai';
 
 export function ExplainScreen() {
   const { subjects, addSummary } = useApp();
+  const { spacing, typography } = useTheme();
+  const styles = useFormStyles();
   const [subjectId, setSubjectId] = useState<string | null>(subjects[0]?.id ?? null);
   const [question, setQuestion] = useState('');
   const [result, setResult] = useState<string | null>(null);
@@ -71,10 +74,3 @@ export function ExplainScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: colors.bg },
-  subtitle: { ...typography.bodyMuted, marginTop: spacing.xs, marginBottom: spacing.lg },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
-  resultText: { ...typography.body, lineHeight: 22 },
-});

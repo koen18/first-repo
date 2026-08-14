@@ -5,7 +5,7 @@ import { Screen } from '../components/Screen';
 import { TextField } from '../components/TextField';
 import { Button } from '../components/Button';
 import { Chip } from '../components/Chip';
-import { colors, radius, spacing, typography } from '../theme/theme';
+import { useTheme } from '../theme/ThemeContext';
 import type { SchoolLevel } from '../types/models';
 
 const LEVELS: { key: SchoolLevel; label: string }[] = [
@@ -18,6 +18,8 @@ const LEVELS: { key: SchoolLevel; label: string }[] = [
 
 export function OnboardingScreen() {
   const { completeOnboarding } = useApp();
+  const { colors, radius, spacing, typography } = useTheme();
+  const styles = getStyles(colors, radius, spacing, typography);
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [level, setLevel] = useState<SchoolLevel>('havo');
@@ -117,12 +119,19 @@ export function OnboardingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  progressRow: { flexDirection: 'row', gap: spacing.xs, marginTop: spacing.xl, marginBottom: spacing.lg },
-  progressDot: { flex: 1, height: 5, borderRadius: radius.pill, backgroundColor: colors.border },
-  progressDotActive: { backgroundColor: colors.primary },
-  title: { ...typography.h1, marginBottom: spacing.xs },
-  subtitle: { ...typography.bodyMuted, marginBottom: spacing.lg },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
-  cta: { marginTop: spacing.xl },
-});
+function getStyles(
+  colors: ReturnType<typeof useTheme>['colors'],
+  radius: ReturnType<typeof useTheme>['radius'],
+  spacing: ReturnType<typeof useTheme>['spacing'],
+  typography: ReturnType<typeof useTheme>['typography']
+) {
+  return StyleSheet.create({
+    progressRow: { flexDirection: 'row', gap: spacing.xs, marginTop: spacing.xl, marginBottom: spacing.lg },
+    progressDot: { flex: 1, height: 5, borderRadius: radius.pill, backgroundColor: colors.border },
+    progressDotActive: { backgroundColor: colors.primary },
+    title: { ...typography.h1, marginBottom: spacing.xs },
+    subtitle: { ...typography.bodyMuted, marginBottom: spacing.lg },
+    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
+    cta: { marginTop: spacing.xl },
+  });
+}

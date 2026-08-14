@@ -8,8 +8,9 @@ import { Screen } from '../components/Screen';
 import { Card } from '../components/Card';
 import { ProgressBar } from '../components/ProgressBar';
 import { Chip } from '../components/Chip';
-import { colors, spacing, typography } from '../theme/theme';
+import { useTheme } from '../theme/ThemeContext';
 import { subjectColor, subjectName } from '../utils/subjects';
+import { computeStreak } from '../utils/gamification';
 import type { RootStackParamList } from '../navigation/types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -17,8 +18,11 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 const STRONG_THRESHOLD = 70;
 
 export function ProgressScreen() {
-  const { progress, subjects, exams, quizzes } = useApp();
+  const { progress, subjects, exams, quizzes, tasks } = useApp();
   const navigation = useNavigation<Nav>();
+  const { colors, spacing, typography, subjectPalette } = useTheme();
+  const styles = getStyles(colors, spacing);
+  const streak = computeStreak(tasks);
 
   const upcomingExams = [...exams]
     .filter((e) => differenceInCalendarDays(parseISO(e.date), new Date()) >= 0)
@@ -46,19 +50,30 @@ export function ProgressScreen() {
     <Screen>
       <View style={styles.header}>
         <Text style={typography.h1}>Progress</Text>
-        <Pressable
-          onPress={() => navigation.navigate('Settings')}
-          style={styles.settingsBtn}
-          accessibilityRole="button"
-          accessibilityLabel="Settings"
-        >
-          <Text style={styles.settingsIcon}>⚙️</Text>
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable
+            onPress={() => navigation.navigate('Achievements')}
+            style={styles.settingsBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Achievements"
+          >
+            <Text style={styles.settingsIcon}>🏆</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => navigation.navigate('Settings')}
+            style={styles.settingsBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Settings"
+          >
+            <Text style={styles.settingsIcon}>⚙️</Text>
+          </Pressable>
+        </View>
       </View>
 
       <View style={styles.statRow}>
-        <StatCard value={progress.tasksCompleted} label="Tasks done" total={progress.tasksTotal} />
-        <StatCard value={progress.sessionsCompleted} label="Study sessions" total={progress.sessionsTotal} />
+        <StatCard value={progress.tasksCompleted} label="Tasks done" total={progress.tasksTotal} styles={styles} />
+        <StatCard value={progress.sessionsCompleted} label="Study sessions" total={progress.sessionsTotal} styles={styles} />
+        <StatCard value={streak} label="Day streak" total={0} showTotal={false} styles={styles} />
       </View>
 
       <Card style={styles.card}>
@@ -66,7 +81,7 @@ export function ProgressScreen() {
         {progress.bySubject.length === 0 && <Text style={styles.emptyText}>No subjects yet.</Text>}
         {progress.bySubject.map((row) => {
           const subject = subjects.find((s) => s.id === row.subjectId);
-          const color = subjectColor(subject);
+          const color = subjectColor(subject, subjectPalette);
           const pct = row.total ? row.completed / row.total : 0;
           return (
             <View key={row.subjectId} style={styles.subjectRow}>
@@ -132,36 +147,54 @@ export function ProgressScreen() {
   );
 }
 
-function StatCard({ value, label, total }: { value: number; label: string; total: number }) {
+function StatCard({
+  value,
+  label,
+  total,
+  showTotal = true,
+  styles,
+}: {
+  value: number;
+  label: string;
+  total: number;
+  showTotal?: boolean;
+  styles: ReturnType<typeof getStyles>;
+}) {
   return (
     <Card style={styles.statCard}>
-      <Text style={styles.statValue}>{value}<Text style={styles.statTotal}>/{total}</Text></Text>
+      <Text style={styles.statValue}>
+        {value}
+        {showTotal && <Text style={styles.statTotal}>/{total}</Text>}
+      </Text>
       <Text style={styles.statLabel}>{label}</Text>
     </Card>
   );
 }
 
-const styles = StyleSheet.create({
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  settingsBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface },
-  settingsIcon: { fontSize: 18 },
-  statRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg, marginBottom: spacing.lg },
-  statCard: { flex: 1, alignItems: 'center' },
-  statValue: { fontSize: 30, fontWeight: '800', color: colors.primary },
-  statTotal: { fontSize: 16, color: colors.textFaint, fontWeight: '600' },
-  statLabel: { ...typography.bodyMuted, marginTop: 4 },
-  card: { marginBottom: spacing.lg },
-  insightHint: { ...typography.caption, marginTop: 2, marginBottom: spacing.sm },
-  insightLabel: { ...typography.label, marginTop: spacing.sm, marginBottom: spacing.sm },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  emptyText: { ...typography.bodyMuted, marginTop: spacing.sm },
-  subjectRow: { marginTop: spacing.md },
-  subjectHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
-  subjectName: { ...typography.body, fontWeight: '600' },
-  subjectCount: { ...typography.bodyMuted },
-  examRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.sm },
-  examTopic: { ...typography.body },
-  examDate: { ...typography.bodyMuted, fontWeight: '600' },
-  scoreGood: { color: colors.secondary },
-  scoreLow: { color: colors.warning },
-});
+function getStyles(colors: ReturnType<typeof useTheme>['colors'], spacing: ReturnType<typeof useTheme>['spacing']) {
+  return StyleSheet.create({
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    headerActions: { flexDirection: 'row', gap: spacing.sm },
+    settingsBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface },
+    settingsIcon: { fontSize: 18 },
+    statRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.lg, marginBottom: spacing.lg },
+    statCard: { flex: 1, alignItems: 'center', paddingHorizontal: spacing.sm },
+    statValue: { fontSize: 26, fontWeight: '800', color: colors.primary },
+    statTotal: { fontSize: 14, color: colors.textFaint, fontWeight: '600' },
+    statLabel: { fontSize: 12, color: colors.textMuted, marginTop: 4, textAlign: 'center' },
+    card: { marginBottom: spacing.lg },
+    insightHint: { fontSize: 12, color: colors.textFaint, marginTop: 2, marginBottom: spacing.sm },
+    insightLabel: { fontSize: 12.5, fontWeight: '700', color: colors.textMuted, marginTop: spacing.sm, marginBottom: spacing.sm },
+    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+    emptyText: { fontSize: 14, color: colors.textMuted, marginTop: spacing.sm },
+    subjectRow: { marginTop: spacing.md },
+    subjectHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
+    subjectName: { fontSize: 15, color: colors.text, fontWeight: '600' },
+    subjectCount: { fontSize: 14, color: colors.textMuted },
+    examRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.sm },
+    examTopic: { fontSize: 15, color: colors.text },
+    examDate: { fontSize: 14, color: colors.textMuted, fontWeight: '600' },
+    scoreGood: { color: colors.secondary },
+    scoreLow: { color: colors.warning },
+  });
+}

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useApp } from '../context/AppContext';
 import { Button } from '../components/Button';
-import { colors, radius, shadow, spacing, typography } from '../theme/theme';
+import { useTheme } from '../theme/ThemeContext';
 import type { RootStackParamList } from '../navigation/types';
 
 type Route = RouteProp<RootStackParamList, 'DeckReview'>;
@@ -11,6 +11,26 @@ type Route = RouteProp<RootStackParamList, 'DeckReview'>;
 export function DeckReviewScreen() {
   const route = useRoute<Route>();
   const { decks } = useApp();
+  const { colors, radius, shadow, spacing, typography } = useTheme();
+  const styles = StyleSheet.create({
+    wrap: { flex: 1, backgroundColor: colors.bg, padding: spacing.lg, alignItems: 'center' },
+    progress: { ...typography.label, marginBottom: spacing.lg },
+    card: {
+      width: '100%',
+      minHeight: 260,
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: spacing.xl,
+      ...shadow.card,
+    },
+    cardLabel: { ...typography.label, color: colors.primary, marginBottom: spacing.md },
+    cardText: { ...typography.h2, textAlign: 'center' },
+    tapHint: { ...typography.caption, position: 'absolute', bottom: spacing.lg },
+    navRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.xl, width: '100%', justifyContent: 'center' },
+  });
+
   const deck = decks.find((d) => d.id === route.params.deckId);
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -51,22 +71,3 @@ export function DeckReviewScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: colors.bg, padding: spacing.lg, alignItems: 'center' },
-  progress: { ...typography.label, marginBottom: spacing.lg },
-  card: {
-    width: '100%',
-    minHeight: 260,
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.xl,
-    ...shadow.card,
-  },
-  cardLabel: { ...typography.label, color: colors.primary, marginBottom: spacing.md },
-  cardText: { ...typography.h2, textAlign: 'center' },
-  tapHint: { ...typography.caption, position: 'absolute', bottom: spacing.lg },
-  navRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.xl, width: '100%', justifyContent: 'center' },
-});

@@ -5,7 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { addDays, format, startOfWeek, isSameDay, parseISO } from 'date-fns';
 import { useApp } from '../context/AppContext';
 import { Screen } from '../components/Screen';
-import { colors, radius, spacing, typography } from '../theme/theme';
+import { useTheme } from '../theme/ThemeContext';
 import { subjectColor, subjectName } from '../utils/subjects';
 import type { RootStackParamList } from '../navigation/types';
 import type { Task } from '../types/models';
@@ -21,6 +21,8 @@ const KIND_ICON: Record<Task['kind'], string> = {
 export function PlannerScreen() {
   const { tasks, subjects, toggleTask } = useApp();
   const navigation = useNavigation<Nav>();
+  const { colors, radius, spacing, typography, subjectPalette } = useTheme();
+  const styles = getStyles(colors, radius, spacing, typography);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [selectedDate, setSelectedDate] = useState(new Date());
 
@@ -73,7 +75,7 @@ export function PlannerScreen() {
           <Text style={styles.emptyText}>Nothing planned on {format(selectedDate, 'EEEE d MMMM')}.</Text>
         }
         renderItem={({ item }) => {
-          const color = subjectColor(subjects.find((s) => s.id === item.subjectId));
+          const color = subjectColor(subjects.find((s) => s.id === item.subjectId), subjectPalette);
           return (
             <Pressable
               style={styles.item}
@@ -111,44 +113,51 @@ export function PlannerScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: spacing.sm },
-  addBtn: { backgroundColor: colors.primary, paddingHorizontal: spacing.lg, paddingVertical: 10, borderRadius: radius.pill },
-  addBtnText: { color: colors.white, fontWeight: '700' },
-  weekNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.lg, marginTop: spacing.lg },
-  weekArrow: { fontSize: 24, color: colors.primary, paddingHorizontal: spacing.md },
-  weekLabel: { ...typography.h3 },
-  weekStrip: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.md, marginBottom: spacing.sm },
-  dayPill: { alignItems: 'center', paddingVertical: spacing.sm, paddingHorizontal: 10, borderRadius: radius.md, gap: 4 },
-  dayPillActive: { backgroundColor: colors.primary },
-  dayLetter: { ...typography.caption },
-  dayNumber: { ...typography.h3, fontSize: 15 },
-  dayTextActive: { color: colors.white },
-  list: { paddingVertical: spacing.md, paddingBottom: spacing.xxl * 2 },
-  emptyText: { ...typography.bodyMuted, textAlign: 'center', marginTop: spacing.xxl },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    gap: spacing.md,
-  },
-  timeCol: { width: 44 },
-  time: { ...typography.caption, fontWeight: '700', color: colors.textMuted },
-  itemBar: { width: 4, alignSelf: 'stretch', borderRadius: 2 },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 7,
-    borderWidth: 2,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxDot: { width: 12, height: 12, borderRadius: 4 },
-  itemTitle: { ...typography.body, fontWeight: '600' },
-  itemTitleDone: { textDecorationLine: 'line-through', color: colors.textFaint },
-  itemMeta: { ...typography.caption, marginTop: 2 },
-});
+function getStyles(
+  colors: ReturnType<typeof useTheme>['colors'],
+  radius: ReturnType<typeof useTheme>['radius'],
+  spacing: ReturnType<typeof useTheme>['spacing'],
+  typography: ReturnType<typeof useTheme>['typography']
+) {
+  return StyleSheet.create({
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: spacing.sm },
+    addBtn: { backgroundColor: colors.primary, paddingHorizontal: spacing.lg, paddingVertical: 10, borderRadius: radius.pill },
+    addBtnText: { color: colors.white, fontWeight: '700' },
+    weekNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.lg, marginTop: spacing.lg },
+    weekArrow: { fontSize: 24, color: colors.primary, paddingHorizontal: spacing.md },
+    weekLabel: { ...typography.h3 },
+    weekStrip: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.md, marginBottom: spacing.sm },
+    dayPill: { alignItems: 'center', paddingVertical: spacing.sm, paddingHorizontal: 10, borderRadius: radius.md, gap: 4 },
+    dayPillActive: { backgroundColor: colors.primary },
+    dayLetter: { ...typography.caption },
+    dayNumber: { ...typography.h3, fontSize: 15 },
+    dayTextActive: { color: colors.white },
+    list: { paddingVertical: spacing.md, paddingBottom: spacing.xxl * 2 },
+    emptyText: { ...typography.bodyMuted, textAlign: 'center', marginTop: spacing.xxl },
+    item: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+      gap: spacing.md,
+    },
+    timeCol: { width: 44 },
+    time: { ...typography.caption, fontWeight: '700', color: colors.textMuted },
+    itemBar: { width: 4, alignSelf: 'stretch', borderRadius: 2 },
+    checkbox: {
+      width: 22,
+      height: 22,
+      borderRadius: 7,
+      borderWidth: 2,
+      borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    checkboxDot: { width: 12, height: 12, borderRadius: 4 },
+    itemTitle: { ...typography.body, fontWeight: '600' },
+    itemTitleDone: { textDecorationLine: 'line-through', color: colors.textFaint },
+    itemMeta: { ...typography.caption, marginTop: 2 },
+  });
+}

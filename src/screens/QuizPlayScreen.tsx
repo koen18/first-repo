@@ -5,7 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../context/AppContext';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
-import { colors, radius, spacing, typography } from '../theme/theme';
+import { useTheme } from '../theme/ThemeContext';
 import type { RootStackParamList } from '../navigation/types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -15,6 +15,8 @@ export function QuizPlayScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const { quizzes, recordQuizAttempt } = useApp();
+  const { colors, radius, spacing, typography } = useTheme();
+  const styles = getStyles(colors, radius, spacing, typography);
   const quiz = quizzes.find((q) => q.id === route.params.quizId);
 
   const [index, setIndex] = useState(0);
@@ -99,22 +101,29 @@ export function QuizPlayScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: colors.bg, padding: spacing.lg },
-  progress: { ...typography.label, marginBottom: spacing.md },
-  question: { ...typography.h3, marginBottom: spacing.lg },
-  option: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.sm,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  optionCorrect: { backgroundColor: colors.secondarySoft, borderColor: colors.secondary },
-  optionWrong: { backgroundColor: colors.dangerSoft, borderColor: colors.danger },
-  optionText: { ...typography.body },
-  explanation: { ...typography.bodyMuted, marginTop: spacing.sm, fontStyle: 'italic' },
-  resultWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  resultEmoji: { fontSize: 48, marginBottom: spacing.sm },
-  resultMeta: { ...typography.bodyMuted, marginTop: spacing.xs },
-});
+function getStyles(
+  colors: ReturnType<typeof useTheme>['colors'],
+  radius: ReturnType<typeof useTheme>['radius'],
+  spacing: ReturnType<typeof useTheme>['spacing'],
+  typography: ReturnType<typeof useTheme>['typography']
+) {
+  return StyleSheet.create({
+    wrap: { flex: 1, backgroundColor: colors.bg, padding: spacing.lg },
+    progress: { ...typography.label, marginBottom: spacing.md },
+    question: { ...typography.h3, marginBottom: spacing.lg },
+    option: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.sm,
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+    },
+    optionCorrect: { backgroundColor: colors.secondarySoft, borderColor: colors.secondary },
+    optionWrong: { backgroundColor: colors.dangerSoft, borderColor: colors.danger },
+    optionText: { ...typography.body },
+    explanation: { ...typography.bodyMuted, marginTop: spacing.sm, fontStyle: 'italic' },
+    resultWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+    resultEmoji: { fontSize: 48, marginBottom: spacing.sm },
+    resultMeta: { ...typography.bodyMuted, marginTop: spacing.xs },
+  });
+}

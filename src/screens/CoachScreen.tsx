@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, Pressable, KeyboardAvoidingView, Plat
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
 import { TextField } from '../components/TextField';
-import { colors, radius, spacing, typography } from '../theme/theme';
+import { useTheme } from '../theme/ThemeContext';
 import type { ChatMessage } from '../types/models';
 
 const SUGGESTIONS = [
@@ -15,6 +15,8 @@ const SUGGESTIONS = [
 
 export function CoachScreen() {
   const { chatMessages, sendChatMessage } = useApp();
+  const { colors, radius, spacing, typography } = useTheme();
+  const styles = getStyles(colors, radius, spacing, typography);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const listRef = useRef<FlatList<ChatMessage>>(null);
@@ -78,32 +80,39 @@ export function CoachScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  header: { ...typography.h2, padding: spacing.lg, paddingBottom: spacing.sm },
-  emptyWrap: { flex: 1, padding: spacing.lg, justifyContent: 'center', gap: spacing.sm },
-  emptyTitle: { ...typography.h3, marginBottom: spacing.sm, textAlign: 'center' },
-  suggestion: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  suggestionText: { ...typography.body, color: colors.primary, fontWeight: '600' },
-  list: { padding: spacing.lg, gap: spacing.sm },
-  bubble: { maxWidth: '85%', borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm },
-  bubbleUser: { backgroundColor: colors.primary, alignSelf: 'flex-end', borderBottomRightRadius: 4 },
-  bubbleAssistant: { backgroundColor: colors.surface, alignSelf: 'flex-start', borderBottomLeftRadius: 4 },
-  bubbleTextUser: { color: colors.white, fontSize: 15, lineHeight: 21 },
-  bubbleTextAssistant: { color: colors.text, fontSize: 15, lineHeight: 21 },
-  inputRow: { flexDirection: 'row', alignItems: 'center', padding: spacing.lg, gap: spacing.sm },
-  sendBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sendBtnText: { color: colors.white, fontSize: 18 },
-});
+function getStyles(
+  colors: ReturnType<typeof useTheme>['colors'],
+  radius: ReturnType<typeof useTheme>['radius'],
+  spacing: ReturnType<typeof useTheme>['spacing'],
+  typography: ReturnType<typeof useTheme>['typography']
+) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    header: { ...typography.h2, padding: spacing.lg, paddingBottom: spacing.sm },
+    emptyWrap: { flex: 1, padding: spacing.lg, justifyContent: 'center', gap: spacing.sm },
+    emptyTitle: { ...typography.h3, marginBottom: spacing.sm, textAlign: 'center' },
+    suggestion: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+    },
+    suggestionText: { ...typography.body, color: colors.primary, fontWeight: '600' },
+    list: { padding: spacing.lg, gap: spacing.sm },
+    bubble: { maxWidth: '85%', borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm },
+    bubbleUser: { backgroundColor: colors.primary, alignSelf: 'flex-end', borderBottomRightRadius: 4 },
+    bubbleAssistant: { backgroundColor: colors.surface, alignSelf: 'flex-start', borderBottomLeftRadius: 4 },
+    bubbleTextUser: { color: colors.white, fontSize: 15, lineHeight: 21 },
+    bubbleTextAssistant: { color: colors.text, fontSize: 15, lineHeight: 21 },
+    inputRow: { flexDirection: 'row', alignItems: 'center', padding: spacing.lg, gap: spacing.sm },
+    sendBtn: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    sendBtnText: { color: colors.white, fontSize: 18 },
+  });
+}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import { Text, View, StyleSheet, useWindowDimensions } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { MainTabParamList } from './types';
 import { DashboardScreen } from '../screens/DashboardScreen';
@@ -7,7 +7,10 @@ import { PlannerScreen } from '../screens/PlannerScreen';
 import { StudyScreen } from '../screens/StudyScreen';
 import { CoachScreen } from '../screens/CoachScreen';
 import { ProgressScreen } from '../screens/ProgressScreen';
-import { colors, radius } from '../theme/theme';
+import { useTheme } from '../theme/ThemeContext';
+import { Sidebar } from './Sidebar';
+
+export const DESKTOP_BREAKPOINT = 900;
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -19,19 +22,25 @@ const ICONS: Record<keyof MainTabParamList, string> = {
   Progress: '📊',
 };
 
-function TabIcon({ name, focused }: { name: keyof MainTabParamList; focused: boolean }) {
+function TabIcon({ name, focused, activeBg }: { name: keyof MainTabParamList; focused: boolean; activeBg: string }) {
   return (
-    <View style={[styles.iconPill, focused && styles.iconPillActive]}>
+    <View style={[styles.iconPill, focused && { backgroundColor: activeBg }]}>
       <Text style={{ fontSize: 18 }}>{ICONS[name]}</Text>
     </View>
   );
 }
 
 export function MainTabs() {
+  const { colors } = useTheme();
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= DESKTOP_BREAKPOINT;
+
   return (
     <Tab.Navigator
+      tabBar={isDesktop ? (props) => <Sidebar {...props} /> : undefined}
       screenOptions={({ route }) => ({
         headerShown: false,
+        tabBarPosition: isDesktop ? 'left' : 'bottom',
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textFaint,
         tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
@@ -43,13 +52,15 @@ export function MainTabs() {
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
           backgroundColor: colors.surface,
-          shadowColor: '#14141F',
+          shadowColor: colors.shadowColor,
           shadowOffset: { width: 0, height: -4 },
           shadowOpacity: 0.06,
           shadowRadius: 16,
           elevation: 12,
         },
-        tabBarIcon: ({ focused }) => <TabIcon name={route.name as keyof MainTabParamList} focused={focused} />,
+        tabBarIcon: ({ focused }) => (
+          <TabIcon name={route.name as keyof MainTabParamList} focused={focused} activeBg={colors.primarySoft} />
+        ),
       })}
     >
       <Tab.Screen name="Dashboard" component={DashboardScreen} options={{ tabBarAccessibilityLabel: 'Dashboard' }} />
@@ -62,14 +73,5 @@ export function MainTabs() {
 }
 
 const styles = StyleSheet.create({
-  iconPill: {
-    width: 44,
-    height: 34,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconPillActive: {
-    backgroundColor: colors.primarySoft,
-  },
+  iconPill: { width: 44, height: 34, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
 });

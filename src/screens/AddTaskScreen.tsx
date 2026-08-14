@@ -7,7 +7,7 @@ import { useApp } from '../context/AppContext';
 import { TextField } from '../components/TextField';
 import { Button } from '../components/Button';
 import { Chip } from '../components/Chip';
-import { colors, spacing, typography } from '../theme/theme';
+import { useTheme } from '../theme/ThemeContext';
 import type { RootStackParamList } from '../navigation/types';
 import type { ItemPriority, Task } from '../types/models';
 
@@ -30,6 +30,8 @@ export function AddTaskScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const { subjects, tasks, addTask, updateTask, deleteTask } = useApp();
+  const { colors, spacing, typography } = useTheme();
+  const styles = getStyles(colors, spacing);
 
   const existing = route.params?.taskId ? tasks.find((t) => t.id === route.params?.taskId) : undefined;
 
@@ -128,9 +130,11 @@ export function AddTaskScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: colors.bg },
-  sectionLabel: { ...typography.label, marginTop: spacing.sm, marginBottom: spacing.sm },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
-  row: { flexDirection: 'row', gap: spacing.md },
-});
+function getStyles(colors: ReturnType<typeof useTheme>['colors'], spacing: ReturnType<typeof useTheme>['spacing']) {
+  return StyleSheet.create({
+    wrap: { flex: 1, backgroundColor: colors.bg },
+    sectionLabel: { fontSize: 12.5, fontWeight: '700', color: colors.textMuted, marginTop: spacing.sm, marginBottom: spacing.sm },
+    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
+    row: { flexDirection: 'row', gap: spacing.md },
+  });
+}

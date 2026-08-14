@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../context/AppContext';
 import { TextField } from '../components/TextField';
 import { Button } from '../components/Button';
 import { Chip } from '../components/Chip';
-import { colors, spacing, typography } from '../theme/theme';
+import { useTheme } from '../theme/ThemeContext';
+import { useFormStyles } from '../theme/useFormStyles';
 import { generateQuiz } from '../services/ai';
 import type { RootStackParamList } from '../navigation/types';
 import type { QuizQuestion } from '../types/models';
@@ -16,6 +17,8 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 export function QuizToolScreen() {
   const navigation = useNavigation<Nav>();
   const { subjects, addQuiz } = useApp();
+  const { spacing, typography } = useTheme();
+  const styles = useFormStyles();
   const [subjectId, setSubjectId] = useState<string | null>(subjects[0]?.id ?? null);
   const [topic, setTopic] = useState('');
   const [material, setMaterial] = useState('');
@@ -70,9 +73,3 @@ export function QuizToolScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: colors.bg },
-  subtitle: { ...typography.bodyMuted, marginTop: spacing.xs, marginBottom: spacing.lg },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
-});

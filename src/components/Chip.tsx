@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, Text, StyleSheet } from 'react-native';
-import { colors, radius, spacing } from '../theme/theme';
+import { useTheme } from '../theme/ThemeContext';
 
 interface ChipProps {
   label: string;
@@ -10,8 +10,20 @@ interface ChipProps {
 }
 
 export function Chip({ label, active, onPress, color }: ChipProps) {
+  const { colors, radius, spacing } = useTheme();
   const bg = color ? color.bg : active ? colors.primary : colors.primarySoft;
   const fg = color ? color.fg : active ? colors.white : colors.primary;
+
+  const styles = StyleSheet.create({
+    chip: {
+      paddingVertical: 6,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.pill,
+      alignSelf: 'flex-start',
+    },
+    label: { fontSize: 12, fontWeight: '600' },
+  });
+
   if (onPress) {
     return (
       <Pressable
@@ -25,20 +37,5 @@ export function Chip({ label, active, onPress, color }: ChipProps) {
       </Pressable>
     );
   }
-  return (
-    <Text style={[styles.chip, styles.label, { backgroundColor: bg, color: fg }]}>{label}</Text>
-  );
+  return <Text style={[styles.chip, styles.label, { backgroundColor: bg, color: fg }]}>{label}</Text>;
 }
-
-const styles = StyleSheet.create({
-  chip: {
-    paddingVertical: 6,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.pill,
-    alignSelf: 'flex-start',
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-});

@@ -1,9 +1,9 @@
 import type { Subject } from '../types/models';
-import { subjectPalette } from '../theme/theme';
+import { subjectPalette as defaultPalette } from '../theme/tokens';
 
-export function subjectColor(subject: Subject | undefined | null) {
-  if (!subject) return subjectPalette[0];
-  return subjectPalette[subject.colorIndex % subjectPalette.length];
+export function subjectColor(subject: Subject | undefined | null, palette: typeof defaultPalette = defaultPalette) {
+  if (!subject) return palette[0];
+  return palette[subject.colorIndex % palette.length];
 }
 
 export function subjectName(subjects: Subject[], subjectId: string | null): string {

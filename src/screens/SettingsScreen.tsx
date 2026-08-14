@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Switch, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Switch, Alert, Pressable, Share } from 'react-native';
 import { useApp } from '../context/AppContext';
+import { useTheme } from '../theme/ThemeContext';
 import { TextField } from '../components/TextField';
 import { Button } from '../components/Button';
 import { Chip } from '../components/Chip';
 import { Card } from '../components/Card';
-import { colors, spacing, typography } from '../theme/theme';
 import type { SchoolLevel } from '../types/models';
+import type { AccentKey, ThemeMode } from '../theme/tokens';
 import { scheduleDailyReminder, cancelDailyReminder } from '../services/notifications';
 
 const LEVELS: { key: SchoolLevel; label: string }[] = [
@@ -18,9 +19,17 @@ const LEVELS: { key: SchoolLevel; label: string }[] = [
 ];
 
 const STUDY_BUDGETS = [60, 90, 120, 180];
+const MODES: { key: ThemeMode; label: string; icon: string }[] = [
+  { key: 'light', label: 'Light', icon: '☀️' },
+  { key: 'dark', label: 'Dark', icon: '🌙' },
+  { key: 'system', label: 'System', icon: '⚙️' },
+];
 
 export function SettingsScreen() {
-  const { profile, isDemoMode, isCloudMode, updateProfile, signOut, resetLocalData } = useApp();
+  const app = useApp();
+  const { profile, isDemoMode, isCloudMode, updateProfile, signOut, resetLocalData } = app;
+  const { colors, spacing, typography, mode, accent, setMode, setAccent, accents } = useTheme();
+  const styles = getStyles(colors, spacing, typography);
 
   const [name, setName] = useState(profile.name);
   const [level, setLevel] = useState<SchoolLevel>(profile.schoolLevel);
@@ -43,8 +52,8 @@ export function SettingsScreen() {
       const ok = await scheduleDailyReminder(reminderTime);
       if (!ok) {
         setReminderError('Notification permission was denied, so reminders were turned back off.');
+        setRemindersEnabled(false);
       }
-      if (!ok) setRemindersEnabled(false);
     } else {
       await cancelDailyReminder();
     }
@@ -77,6 +86,24 @@ export function SettingsScreen() {
     );
   };
 
+  const exportData = async () => {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      profile: app.profile,
+      subjects: app.subjects,
+      tasks: app.tasks,
+      exams: app.exams,
+      quizzes: app.quizzes,
+      decks: app.decks,
+      summaries: app.summaries,
+    };
+    try {
+      await Share.share({ message: JSON.stringify(payload, null, 2), title: 'Study Planner data export' });
+    } catch {
+      Alert.alert('Export failed', 'Could not open the share sheet on this device.');
+    }
+  };
+
   return (
     <ScrollView style={styles.wrap} contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }}>
       <Text style={typography.h1}>Settings</Text>
@@ -89,6 +116,30 @@ export function SettingsScreen() {
             : 'Running with mock AI and on-device data only. Connect Supabase (see README) to make this a real account.'}
         </Text>
       </Card>
+
+      <Text style={styles.sectionHeading}>Appearance</Text>
+      <Text style={styles.sectionLabel}>Theme</Text>
+      <View style={styles.chipRow}>
+        {MODES.map((m) => (
+          <Chip key={m.key} label={`${m.icon} ${m.label}`} active={mode === m.key} onPress={() => setMode(m.key)} />
+        ))}
+      </View>
+
+      <Text style={styles.sectionLabel}>Accent color</Text>
+      <View style={styles.swatchRow}>
+        {(Object.keys(accents) as AccentKey[]).map((key) => (
+          <Pressable
+            key={key}
+            onPress={() => setAccent(key)}
+            style={[styles.swatch, { backgroundColor: accents[key].primary }, accent === key && styles.swatchActive]}
+            accessibilityRole="button"
+            accessibilityLabel={accents[key].label}
+            accessibilityState={{ selected: accent === key }}
+          >
+            {accent === key && <Text style={styles.swatchCheck}>✓</Text>}
+          </Pressable>
+        ))}
+      </View>
 
       <Text style={styles.sectionHeading}>Profile</Text>
       <Text style={styles.sectionLabel}>Name</Text>
@@ -160,12 +211,11 @@ export function SettingsScreen() {
       />
 
       <Text style={styles.sectionHeading}>Data</Text>
+      <Button label="Export my data" variant="secondary" onPress={exportData} style={{ marginBottom: spacing.md }} />
       {isDemoMode && (
         <Button label="Reset local data" variant="danger" onPress={confirmReset} style={{ marginBottom: spacing.md }} />
       )}
-      {isCloudMode && (
-        <Button label="Log out" variant="ghost" onPress={signOut} />
-      )}
+      {isCloudMode && <Button label="Log out" variant="ghost" onPress={signOut} />}
 
       <Text style={styles.sectionHeading}>About</Text>
       <Card>
@@ -185,19 +235,29 @@ export function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: colors.bg },
-  modeCard: { marginTop: spacing.lg, marginBottom: spacing.lg, backgroundColor: colors.primarySoft },
-  modeLabel: { ...typography.h3, marginBottom: spacing.xs },
-  modeDesc: { ...typography.bodyMuted },
-  sectionHeading: { ...typography.h3, marginTop: spacing.xl, marginBottom: spacing.sm },
-  sectionLabel: { ...typography.label, marginTop: spacing.sm, marginBottom: spacing.sm },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
-  row: { flexDirection: 'row', gap: spacing.md },
-  reminderCard: { marginBottom: spacing.sm },
-  reminderRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  reminderTitle: { ...typography.body, fontWeight: '600' },
-  errorText: { color: colors.danger, marginTop: spacing.sm, fontSize: 13 },
-  aboutTitle: { ...typography.h3, marginBottom: spacing.xs },
-  footNote: { ...typography.caption, textAlign: 'center', marginTop: spacing.lg },
-});
+function getStyles(
+  colors: ReturnType<typeof useTheme>['colors'],
+  spacing: ReturnType<typeof useTheme>['spacing'],
+  typography: ReturnType<typeof useTheme>['typography']
+) {
+  return StyleSheet.create({
+    wrap: { flex: 1, backgroundColor: colors.bg },
+    modeCard: { marginTop: spacing.lg, marginBottom: spacing.lg, backgroundColor: colors.primarySoft },
+    modeLabel: { ...typography.h3, marginBottom: spacing.xs },
+    modeDesc: { ...typography.bodyMuted },
+    sectionHeading: { ...typography.h3, marginTop: spacing.xl, marginBottom: spacing.sm },
+    sectionLabel: { ...typography.label, marginTop: spacing.sm, marginBottom: spacing.sm },
+    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
+    swatchRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
+    swatch: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+    swatchActive: { borderWidth: 3, borderColor: colors.text },
+    swatchCheck: { color: colors.white, fontWeight: '800' },
+    row: { flexDirection: 'row', gap: spacing.md },
+    reminderCard: { marginBottom: spacing.sm },
+    reminderRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+    reminderTitle: { ...typography.body, fontWeight: '600' },
+    errorText: { color: colors.danger, marginTop: spacing.sm, fontSize: 13 },
+    aboutTitle: { ...typography.h3, marginBottom: spacing.xs },
+    footNote: { ...typography.caption, textAlign: 'center', marginTop: spacing.lg },
+  });
+}
