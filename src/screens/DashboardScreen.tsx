@@ -58,7 +58,14 @@ export function DashboardScreen() {
           todayTasks.map((t) => {
             const color = subjectColor(subjects.find((s) => s.id === t.subjectId));
             return (
-              <Pressable key={t.id} style={styles.taskRow} onPress={() => toggleTask(t.id)}>
+              <Pressable
+                key={t.id}
+                style={styles.taskRow}
+                onPress={() => toggleTask(t.id)}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: t.done }}
+                accessibilityLabel={t.title}
+              >
                 <View style={[styles.checkbox, t.done && styles.checkboxDone]}>
                   {t.done && <Text style={styles.checkMark}>✓</Text>}
                 </View>
@@ -75,7 +82,14 @@ export function DashboardScreen() {
           <>
             <Text style={[styles.muted, { marginTop: spacing.md }]}>Study sessions today</Text>
             {todaySessions.map((s) => (
-              <Pressable key={s.id} style={styles.taskRow} onPress={() => toggleTask(s.id)}>
+              <Pressable
+                key={s.id}
+                style={styles.taskRow}
+                onPress={() => toggleTask(s.id)}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: s.done }}
+                accessibilityLabel={s.title}
+              >
                 <View style={[styles.checkbox, s.done && styles.checkboxDone]}>
                   {s.done && <Text style={styles.checkMark}>✓</Text>}
                 </View>
@@ -99,19 +113,26 @@ export function DashboardScreen() {
 
       <Text style={[typography.h3, styles.sectionTitle]}>Quick actions</Text>
       <View style={styles.quickGrid}>
-        <QuickAction icon="✅" label="Add task" onPress={() => navigation.navigate('AddTask', undefined)} />
-        <QuickAction icon="🎯" label="Add exam" onPress={() => navigation.navigate('AddExam')} />
-        <QuickAction icon="📝" label="Make summary" onPress={() => navigation.navigate('SummaryTool')} />
-        <QuickAction icon="❓" label="Practice test" onPress={() => navigation.navigate('QuizTool')} />
+        <QuickAction icon="✅" bg={colors.secondarySoft} label="Add task" onPress={() => navigation.navigate('AddTask', undefined)} />
+        <QuickAction icon="🎯" bg={colors.dangerSoft} label="Add exam" onPress={() => navigation.navigate('AddExam')} />
+        <QuickAction icon="📝" bg={colors.primarySoft} label="Make summary" onPress={() => navigation.navigate('SummaryTool')} />
+        <QuickAction icon="❓" bg={colors.warningSoft} label="Practice test" onPress={() => navigation.navigate('QuizTool')} />
       </View>
     </Screen>
   );
 }
 
-function QuickAction({ icon, label, onPress }: { icon: string; label: string; onPress: () => void }) {
+function QuickAction({ icon, bg, label, onPress }: { icon: string; bg: string; label: string; onPress: () => void }) {
   return (
-    <Pressable style={styles.quickAction} onPress={onPress}>
-      <Text style={styles.quickIcon}>{icon}</Text>
+    <Pressable
+      style={styles.quickAction}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      <View style={[styles.quickIconCircle, { backgroundColor: bg }]}>
+        <Text style={styles.quickIcon}>{icon}</Text>
+      </View>
       <Text style={styles.quickLabel}>{label}</Text>
     </Pressable>
   );
@@ -153,6 +174,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs,
   },
-  quickIcon: { fontSize: 26 },
+  quickIconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickIcon: { fontSize: 22 },
   quickLabel: { ...typography.label, color: colors.text },
 });

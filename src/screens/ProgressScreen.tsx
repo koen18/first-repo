@@ -1,16 +1,21 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { parseISO, format, differenceInCalendarDays } from 'date-fns';
 import { useApp } from '../context/AppContext';
 import { Screen } from '../components/Screen';
 import { Card } from '../components/Card';
 import { ProgressBar } from '../components/ProgressBar';
-import { Button } from '../components/Button';
 import { colors, spacing, typography } from '../theme/theme';
 import { subjectColor, subjectName } from '../utils/subjects';
+import type { RootStackParamList } from '../navigation/types';
+
+type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 export function ProgressScreen() {
-  const { progress, subjects, exams, isCloudMode, signOut } = useApp();
+  const { progress, subjects, exams } = useApp();
+  const navigation = useNavigation<Nav>();
 
   const upcomingExams = [...exams]
     .filter((e) => differenceInCalendarDays(parseISO(e.date), new Date()) >= 0)
@@ -18,7 +23,17 @@ export function ProgressScreen() {
 
   return (
     <Screen>
-      <Text style={typography.h1}>Progress</Text>
+      <View style={styles.header}>
+        <Text style={typography.h1}>Progress</Text>
+        <Pressable
+          onPress={() => navigation.navigate('Settings')}
+          style={styles.settingsBtn}
+          accessibilityRole="button"
+          accessibilityLabel="Settings"
+        >
+          <Text style={styles.settingsIcon}>⚙️</Text>
+        </Pressable>
+      </View>
 
       <View style={styles.statRow}>
         <StatCard value={progress.tasksCompleted} label="Tasks done" total={progress.tasksTotal} />
@@ -65,10 +80,6 @@ export function ProgressScreen() {
           </View>
         ))}
       </Card>
-
-      {isCloudMode && (
-        <Button label="Log out" variant="ghost" onPress={signOut} style={{ marginTop: spacing.sm }} />
-      )}
     </Screen>
   );
 }
@@ -83,6 +94,9 @@ function StatCard({ value, label, total }: { value: number; label: string; total
 }
 
 const styles = StyleSheet.create({
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  settingsBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface },
+  settingsIcon: { fontSize: 18 },
   statRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg, marginBottom: spacing.lg },
   statCard: { flex: 1, alignItems: 'center' },
   statValue: { fontSize: 30, fontWeight: '800', color: colors.primary },

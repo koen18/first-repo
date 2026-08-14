@@ -145,27 +145,75 @@ export interface GeneratedSession {
   durationMinutes: number;
 }
 
-export async function createStudyPlan(exam: Pick<Exam, 'topic' | 'date' | 'difficulty' | 'chapters' | 'material'>): Promise<GeneratedSession[]> {
+export interface StudyPlanOptions {
+  sessionMinutes?: number; // student override; otherwise derived from difficulty
+  sessionCount?: number; // student override; otherwise derived from chapters x difficulty
+}
+
+// Days that already have this much homework/events scheduled are treated as
+// "full" - the planner looks for a nearby lighter day instead of stacking a
+// study session on top, so it never eats into a day already busy with homework.
+const DAILY_BUSY_LIMIT_MINUTES = 120;
+
+export async function createStudyPlan(
+  exam: Pick<Exam, 'topic' | 'date' | 'difficulty' | 'chapters' | 'material'>,
+  existingTasks: Task[] = [],
+  options: StudyPlanOptions = {}
+): Promise<GeneratedSession[]> {
   const today = new Date();
   const examDate = new Date(exam.date + 'T00:00:00');
   const daysAvailable = Math.max(differenceInCalendarDays(examDate, today) - 1, 1);
 
   const difficultyFactor = exam.difficulty === 'hard' ? 1.5 : exam.difficulty === 'easy' ? 0.75 : 1;
   const idealSessions = Math.round(Math.max(exam.chapters, 1) * difficultyFactor);
-  const sessionCount = Math.min(Math.max(idealSessions, 3), Math.min(daysAvailable, 10));
+  const sessionCount = Math.min(
+    Math.max(options.sessionCount ?? Math.max(idealSessions, 3), 1),
+    Math.max(daysAvailable, 1)
+  );
+  const sessionMinutes = options.sessionMinutes ?? (exam.difficulty === 'hard' ? 60 : 45);
 
   const titles = await sessionTitles(exam, sessionCount);
-  const step = daysAvailable / sessionCount;
 
-  return Array.from({ length: sessionCount }).map((_, i) => {
-    const dayOffset = Math.max(1, Math.round(step * i + 1));
-    const date = format(addDays(today, Math.min(dayOffset, daysAvailable)), 'yyyy-MM-dd');
-    return {
-      title: titles[i] ?? `Study session ${i + 1} - ${exam.topic}`,
-      date,
-      durationMinutes: exam.difficulty === 'hard' ? 60 : 45,
-    };
-  });
+  // How busy is each candidate day already, from homework/events (not other
+  // study sessions - those are flexible and don't count as "taken").
+  const busyByDate = new Map<string, number>();
+  for (const t of existingTasks) {
+    if (t.kind === 'study_session') continue;
+    busyByDate.set(t.date, (busyByDate.get(t.date) ?? 0) + t.durationMinutes);
+  }
+
+  const candidateDates = Array.from({ length: daysAvailable }, (_, i) =>
+    format(addDays(today, i + 1), 'yyyy-MM-dd')
+  );
+
+  const step = daysAvailable / sessionCount;
+  const chosenDates: string[] = [];
+  for (let i = 0; i < sessionCount; i++) {
+    const anchor = Math.min(Math.round(step * i), candidateDates.length - 1);
+    let bestIndex = anchor;
+    let bestLoad = busyByDate.get(candidateDates[anchor]) ?? 0;
+    if (bestLoad >= DAILY_BUSY_LIMIT_MINUTES) {
+      for (let delta = 1; delta <= 3 && bestLoad >= DAILY_BUSY_LIMIT_MINUTES; delta++) {
+        for (const candidate of [anchor - delta, anchor + delta]) {
+          if (candidate < 0 || candidate >= candidateDates.length) continue;
+          const load = busyByDate.get(candidateDates[candidate]) ?? 0;
+          if (load < bestLoad) {
+            bestLoad = load;
+            bestIndex = candidate;
+          }
+        }
+      }
+    }
+    const chosenDate = candidateDates[bestIndex];
+    chosenDates.push(chosenDate);
+    busyByDate.set(chosenDate, (busyByDate.get(chosenDate) ?? 0) + sessionMinutes);
+  }
+
+  return chosenDates.map((date, i) => ({
+    title: titles[i] ?? `Study session ${i + 1} - ${exam.topic}`,
+    date,
+    durationMinutes: sessionMinutes,
+  }));
 }
 
 async function sessionTitles(

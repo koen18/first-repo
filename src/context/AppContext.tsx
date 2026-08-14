@@ -25,6 +25,7 @@ import type {
   UserProfile,
 } from '../types/models';
 import { createStudyPlan, replanSessions, coachReply as aiCoachReply } from '../services/ai';
+import type { StudyPlanOptions } from '../services/ai';
 import * as repo from '../services/repo';
 
 const STORAGE_KEY = 'aisp:v1:state';
@@ -79,7 +80,8 @@ interface AppContextValue extends PersistedState {
   toggleTask: (id: string) => Promise<void>;
   updateTask: (id: string, patch: Partial<Task>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
-  addExam: (input: Omit<Exam, 'id' | 'planGenerated'>) => Promise<Exam>;
+  addExam: (input: Omit<Exam, 'id' | 'planGenerated'>, options?: StudyPlanOptions) => Promise<Exam>;
+  updateProfile: (input: Omit<UserProfile, 'id' | 'onboarded'>) => Promise<void>;
   replanExam: (examId: string) => Promise<void>;
   addQuiz: (title: string, subjectId: string | null, questions: QuizQuestion[]) => Promise<Quiz>;
   recordQuizAttempt: (quizId: string, score: number) => Promise<void>;
@@ -148,8 +150,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   }, []);
 
-  const completeOnboarding = useCallback<AppContextValue['completeOnboarding']>(
-    async (input) => {
+  const saveProfileAndSubjects = useCallback(
+    async (input: Omit<UserProfile, 'id' | 'onboarded'>) => {
       const existingByName = new Map(state.subjects.map((s) => [s.name.trim().toLowerCase(), s]));
       const subjects: Subject[] = input.subjects.map((name, i) => {
         const match = existingByName.get(name.trim().toLowerCase());
@@ -168,6 +170,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     },
     [state, userId, isCloudMode, persistLocal]
   );
+
+  const completeOnboarding = saveProfileAndSubjects;
+  const updateProfile = saveProfileAndSubjects;
 
   const addTask = useCallback<AppContextValue['addTask']>(
     async (input) => {
@@ -213,9 +218,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const addExam = useCallback<AppContextValue['addExam']>(
-    async (input) => {
+    async (input, options) => {
       const exam: Exam = { ...input, id: uid(), planGenerated: false };
-      const sessions = await createStudyPlan(exam);
+      const sessions = await createStudyPlan(exam, state.tasks, options);
       const sessionTasks: Task[] = sessions.map((s) => ({
         id: uid(),
         title: s.title,
@@ -392,6 +397,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     isCloudMode,
     needsAuth: isSupabaseConfigured && authChecked && !session,
     completeOnboarding,
+    updateProfile,
     addTask,
     toggleTask,
     updateTask,

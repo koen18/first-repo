@@ -19,6 +19,8 @@ const DIFFICULTIES: { key: ExamDifficulty; label: string }[] = [
   { key: 'hard', label: 'Hard' },
 ];
 
+const SESSION_LENGTHS = [30, 45, 60, 90];
+
 export function AddExamScreen() {
   const navigation = useNavigation<Nav>();
   const { subjects, addExam } = useApp();
@@ -29,6 +31,8 @@ export function AddExamScreen() {
   const [difficulty, setDifficulty] = useState<ExamDifficulty>('medium');
   const [chapters, setChapters] = useState('3');
   const [material, setMaterial] = useState('');
+  const [sessionMinutes, setSessionMinutes] = useState<number | null>(null);
+  const [sessionCount, setSessionCount] = useState('');
   const [saving, setSaving] = useState(false);
 
   const canSave = topic.trim().length > 0 && subjectId !== null;
@@ -36,14 +40,20 @@ export function AddExamScreen() {
   const save = async () => {
     if (!subjectId) return;
     setSaving(true);
-    const exam = await addExam({
-      subjectId,
-      topic: topic.trim(),
-      date,
-      difficulty,
-      chapters: Number(chapters) || 1,
-      material: material.trim(),
-    });
+    const exam = await addExam(
+      {
+        subjectId,
+        topic: topic.trim(),
+        date,
+        difficulty,
+        chapters: Number(chapters) || 1,
+        material: material.trim(),
+      },
+      {
+        sessionMinutes: sessionMinutes ?? undefined,
+        sessionCount: sessionCount.trim() ? Number(sessionCount) : undefined,
+      }
+    );
     setSaving(false);
     navigation.replace('ExamDetail', { examId: exam.id });
   };
@@ -51,7 +61,10 @@ export function AddExamScreen() {
   return (
     <ScrollView style={styles.wrap} contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }}>
       <Text style={typography.h2}>Add an exam</Text>
-      <Text style={styles.subtitle}>I'll turn this into a realistic study schedule on your Planner.</Text>
+      <Text style={styles.subtitle}>
+        I'll turn this into a realistic study schedule on your Planner - and skip days you already have a lot of
+        homework on.
+      </Text>
 
       <Text style={styles.sectionLabel}>Subject</Text>
       <View style={styles.chipRow}>
@@ -71,6 +84,23 @@ export function AddExamScreen() {
       </View>
 
       <TextField label="Number of chapters" keyboardType="number-pad" value={chapters} onChangeText={setChapters} />
+
+      <Text style={styles.sectionLabel}>How long per study session?</Text>
+      <View style={styles.chipRow}>
+        <Chip label="Auto" active={sessionMinutes === null} onPress={() => setSessionMinutes(null)} />
+        {SESSION_LENGTHS.map((m) => (
+          <Chip key={m} label={`${m} min`} active={sessionMinutes === m} onPress={() => setSessionMinutes(m)} />
+        ))}
+      </View>
+
+      <TextField
+        label="Number of sessions (leave empty for automatic)"
+        keyboardType="number-pad"
+        placeholder="Auto"
+        value={sessionCount}
+        onChangeText={setSessionCount}
+      />
+
       <TextField
         label="Study material (paste text - optional)"
         placeholder="Paste notes, chapter summaries, anything you have..."

@@ -64,7 +64,14 @@ export function ExamDetailScreen() {
       <Card style={{ marginTop: spacing.lg }}>
         <Text style={typography.h3}>Study plan</Text>
         {sessions.map((s) => (
-          <Pressable key={s.id} style={styles.sessionRow} onPress={() => toggleTask(s.id)}>
+          <Pressable
+            key={s.id}
+            style={styles.sessionRow}
+            onPress={() => toggleTask(s.id)}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: s.done }}
+            accessibilityLabel={s.title}
+          >
             <View style={[styles.checkbox, s.done && styles.checkboxDone]}>
               {s.done && <Text style={styles.checkMark}>✓</Text>}
             </View>

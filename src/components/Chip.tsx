@@ -14,7 +14,13 @@ export function Chip({ label, active, onPress, color }: ChipProps) {
   const fg = color ? color.fg : active ? colors.white : colors.primary;
   if (onPress) {
     return (
-      <Pressable onPress={onPress} style={[styles.chip, { backgroundColor: bg }]}>
+      <Pressable
+        onPress={onPress}
+        style={[styles.chip, { backgroundColor: bg }]}
+        accessibilityRole="button"
+        accessibilityState={{ selected: !!active }}
+        accessibilityLabel={label}
+      >
         <Text style={[styles.label, { color: fg }]}>{label}</Text>
       </Pressable>
     );

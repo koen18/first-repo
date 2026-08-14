@@ -10,6 +10,7 @@ export type RootStackParamList = {
   FlashcardTool: undefined;
   QuizPlay: { quizId: string };
   DeckReview: { deckId: string };
+  Settings: undefined;
 };
 
 export type MainTabParamList = {

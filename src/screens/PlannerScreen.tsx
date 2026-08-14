@@ -79,12 +79,20 @@ export function PlannerScreen() {
               style={styles.item}
               onPress={() => navigation.navigate('AddTask', { taskId: item.id })}
               onLongPress={() => toggleTask(item.id)}
+              accessibilityRole="button"
+              accessibilityLabel={`Edit ${item.title}`}
             >
               <View style={[styles.timeCol]}>
                 <Text style={styles.time}>{item.time ?? '—'}</Text>
               </View>
               <View style={[styles.itemBar, { backgroundColor: color.fg }]} />
-              <Pressable style={styles.checkbox} onPress={() => toggleTask(item.id)}>
+              <Pressable
+                style={styles.checkbox}
+                onPress={() => toggleTask(item.id)}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: item.done }}
+                accessibilityLabel={`Mark ${item.title} as ${item.done ? 'not done' : 'done'}`}
+              >
                 {item.done && <View style={[styles.checkboxDot, { backgroundColor: color.fg }]} />}
               </Pressable>
               <View style={{ flex: 1 }}>

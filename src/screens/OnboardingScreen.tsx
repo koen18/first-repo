@@ -5,7 +5,7 @@ import { Screen } from '../components/Screen';
 import { TextField } from '../components/TextField';
 import { Button } from '../components/Button';
 import { Chip } from '../components/Chip';
-import { colors, spacing, typography } from '../theme/theme';
+import { colors, radius, spacing, typography } from '../theme/theme';
 import type { SchoolLevel } from '../types/models';
 
 const LEVELS: { key: SchoolLevel; label: string }[] = [
@@ -55,7 +55,11 @@ export function OnboardingScreen() {
   return (
     <Screen>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <Text style={styles.eyebrow}>Step {step + 1} of {steps.length}</Text>
+        <View style={styles.progressRow} accessibilityLabel={`Step ${step + 1} of ${steps.length}`}>
+          {steps.map((s, i) => (
+            <View key={s} style={[styles.progressDot, i <= step && styles.progressDotActive]} />
+          ))}
+        </View>
 
         {steps[step] === 'name' && (
           <>
@@ -111,7 +115,9 @@ export function OnboardingScreen() {
 }
 
 const styles = StyleSheet.create({
-  eyebrow: { ...typography.label, color: colors.primary, marginTop: spacing.xl, marginBottom: spacing.md },
+  progressRow: { flexDirection: 'row', gap: spacing.xs, marginTop: spacing.xl, marginBottom: spacing.lg },
+  progressDot: { flex: 1, height: 5, borderRadius: radius.pill, backgroundColor: colors.border },
+  progressDotActive: { backgroundColor: colors.primary },
   title: { ...typography.h1, marginBottom: spacing.xs },
   subtitle: { ...typography.bodyMuted, marginBottom: spacing.lg },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },

@@ -16,6 +16,7 @@ import { QuizToolScreen } from '../screens/QuizToolScreen';
 import { FlashcardToolScreen } from '../screens/FlashcardToolScreen';
 import { QuizPlayScreen } from '../screens/QuizPlayScreen';
 import { DeckReviewScreen } from '../screens/DeckReviewScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
 import { colors } from '../theme/theme';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -58,6 +59,7 @@ export function RootNavigator() {
             <Stack.Screen name="FlashcardTool" component={FlashcardToolScreen} options={{ headerShown: true, title: '' }} />
             <Stack.Screen name="QuizPlay" component={QuizPlayScreen} options={{ headerShown: true, title: 'Practice test' }} />
             <Stack.Screen name="DeckReview" component={DeckReviewScreen} options={{ headerShown: true, title: 'Flashcards' }} />
+            <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: true, title: '' }} />
           </>
         )}
       </Stack.Navigator>

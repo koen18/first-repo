@@ -13,6 +13,7 @@ export function TextField({ label, style, ...props }: TextFieldProps) {
       <TextInput
         placeholderTextColor={colors.textFaint}
         style={[styles.input, style]}
+        accessibilityLabel={label ?? props.placeholder}
         {...props}
       />
     </View>
